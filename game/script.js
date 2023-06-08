@@ -84,14 +84,7 @@ class Grid {
         (this.current - this.lastCall)
       )
     ) {
-      this.bool = true
-      do {
-        i = randomInt(0, 8);
-        if (this.moles[i].active == 1) {
-          this.moles[i].activate();
-          this.bool = false
-        }
-      } while (this.bool);
+      this.moles[randomInt(0, 8)].activate(this.difficulty)
     }
     if (click[0]) {
       this.gameClick({ x: click[1].clientX, y: click[1].clientY });
@@ -125,9 +118,11 @@ class Mole {
     this.expired = false;
   }
   activate(difficulty) {
-    this.parent.activated.push(this);
-    this.active = 1;
-    this.timeLeft = this.base_time / difficulty;
+    if (this.activate != 1) {
+      this.parent.activated.push(this);
+      this.active = 1;
+      this.timeLeft = this.base_time / difficulty;
+    }
   }
   onClick() {
     this.clicked_on = true;
