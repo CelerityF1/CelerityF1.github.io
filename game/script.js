@@ -82,7 +82,7 @@ class Grid {
       chance(
         (this.base_chance * (this.difficulty / 10)) /
         (this.current - this.lastCall)
-      )
+      ) && this.activated.length < this.difficulty
     ) {
       this.moles[randomInt(0, 8)].activate(this.difficulty)
     }
@@ -147,6 +147,7 @@ class Mole {
           this.timeLeft = -1;
           this.clicked_on = false;
           this.sprite.draw(this.img_off);
+          this.parent.activated.splice(this.parent.activated.indexOf(this), 1)
           break;
         }
         this.sprite.draw(this.img_on);
