@@ -113,22 +113,22 @@ class Grid {
         this.next_activation - (this.current - this.lastCall);
     } else if (
       this.next_activation < 0 &&
-      this.activated.length < this.difficulty - 1 && 0 < this.activated.length
+      this.activated.length < this.difficulty - 1
     ) {
       this.next_activation = 1 / (0.5 * this.difficulty);
       this.not_activated[
         randomInt(0, this.not_activated.length - 1)
       ].activate(this.difficulty);
-      console.log(this.activated);
+      console.log(this.activated)
     } else if (
       this.next_activation == -1 &&
-      this.activated.length < this.difficulty - 1 && 0 < this.activated.length
+      this.activated.length < this.difficulty - 1
     ) {
       this.next_activation = 1 / (0.5 * this.difficulty);
       this.not_activated[
         randomInt(0, this.not_activated.length - 1)
       ].activate(this.difficulty);
-      console.log(this.activated);
+      console.log(this.activated)
     } else {
       this.next_activation = -1;
     }
@@ -163,6 +163,7 @@ const grid = new Grid();
 class Mole {
   constructor(parent, position, size) {
     this.parent = parent;
+    this.position = position
     this.sprite = new Sprite(position, size);
     this.img_on = "blue";
     this.img_off = "black";
@@ -178,7 +179,7 @@ class Mole {
     this.parent.not_activated.push(this);
   }
   activate(difficulty) {
-    if (this.activate != 1) {
+    if (this.status != 1) {
       this.parent.not_activated.splice(
         this.parent.not_activated.indexOf(this),
         1
@@ -203,7 +204,7 @@ class Mole {
       case 1:
         if (this.clicked_on) {
           this.status = 3;
-          this.cool_down = 5;
+          this.cool_down = 0.5;
           this.timeLeft = -1;
           this.clicked_on = false;
           this.sprite.draw(this.img_off);
@@ -227,17 +228,19 @@ class Mole {
           this.sprite.draw(this.img_off);
         }
         this.cool_down = this.cool_down - (this.current - this.lastCall);
-        if (this.cool_down < 0) {
+        if (this.cool_down <= 0) {
           this.status = 0;
+          this.cool_down = 0
           this.parent.activated.splice(this.parent.activated.indexOf(this), 1);
           this.parent.not_activated.push(this);
         }
         break;
       case 3:
-        this.sprite.draw(self.img_off);
+        this.sprite.draw(this.img_off);
         this.cool_down = this.cool_down - (this.current - this.lastCall);
-        if (this.cool_down < 0) {
+        if (this.cool_down <= 0) {
           this.status = 0;
+          this.cool_down = 0
           this.parent.activated.splice(this.parent.activated.indexOf(this), 1);
           this.parent.not_activated.push(this);
         }
