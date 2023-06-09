@@ -54,10 +54,10 @@ nav img {
     position: absolute;
     left: 2%;
     top: 1%;
-    width: 150px;
+    width: 8%;
 }
 
-.top {
+nav.top {
     background-image: linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0)), url();
 }
 
