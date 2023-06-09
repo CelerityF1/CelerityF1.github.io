@@ -19,6 +19,15 @@ body {
     position: relative;
 }
 
+iframe {
+    position: absolute;
+    left: 50%;
+    top: 20%;
+    transform: translate(-50%, 0);
+    width: 90%;
+    height: 700px;
+}
+
 nav {
     display: flex;
     padding: 2% 6%;
