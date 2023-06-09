@@ -1,8 +1,10 @@
 const canvas = document.getElementById("mainCanvas");
 const c = canvas.getContext("2d");
 c.font = "30px Arial";
+const celerityOrange = "#ee7010"
 const sf = 0.5;
 let clickData = [false, {}];
+
 
 function pixelX(num) {
   return Math.round(num * (canvas.width / 1000));
@@ -33,7 +35,7 @@ class Grid {
     this.activated = [];
     this.not_activated = [];
     this.difficulty = 0;
-    this.dif_scaling = 0.125;
+    this.dif_scaling = 0.8;
     this.strikes = 0;
     this.strikeMarks = [];
     this.start_time = 0;
@@ -64,7 +66,7 @@ class Grid {
   createStrikeMarks() {
     let size = 25;
     let padding = 10;
-    let y_h = pixelY(60);
+    let y_h = pixelY(75);
     for (var i = -1; i < 2; i++) {
       this.strikeMarks.push(
         new Sprite({ x: pixelX(500 - size / 2 + i * (size + padding)), y: y_h }, { x: pixelX(size), y: pixelX(size) })
@@ -107,7 +109,7 @@ class Grid {
       this.start_time = Date.now() / 1000;
     }
     this.current = Date.now() / 1000;
-    this.difficulty = Math.sqrt(this.current - this.start_time) * 0.5 + 1;
+    this.difficulty = Math.sqrt(this.current - this.start_time) * this.dif_scaling + 1;
     if (this.next_activation > 0) {
       this.next_activation =
         this.next_activation - (this.current - this.lastCall);
@@ -266,7 +268,7 @@ class Sprite {
 
 function loop() {
   window.requestAnimationFrame(loop);
-  c.fillStyle = "orange";
+  c.fillStyle = celerityOrange;
   c.fillRect(0, 0, canvas.width, canvas.height);
   drawText(Math.trunc(grid.difficulty * 1000), "60px Arial", "black", {
     x: pixelX(100),
