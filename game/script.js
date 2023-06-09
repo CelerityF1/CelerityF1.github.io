@@ -4,11 +4,16 @@ c.font = "30px Arial";
 const sf = 0.5;
 let clickData = [false, {}];
 
-function pixel(num) {
-  return num * (canvas.width / 1000);
+function pixelX(num) {
+  return Math.round(num * (canvas.width / 1000));
+}
+
+function pixelY(num) {
+  return Math.round(num * (canvas.height / 1000));
 }
 
 function randomInt(min, max) {
+  Math.floor(Math.random() * (max - min + 1)) + min;
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
