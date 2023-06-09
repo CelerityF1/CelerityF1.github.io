@@ -10,10 +10,16 @@
     user-select: none;
 }
 
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 .header {
     min-height: 100vh;
     width: 100%;
-    background-image: linear-gradient( rgba(207, 111, 1, 0.7), rgba(221, 144, 0, 0.7)), url();
+    background-image: linear-gradient( rgba(238, 112, 16, 1), rgba(238, 112, 16, 1)), url();
     background-position: center;
     background-size: cover;
     position: relative;
@@ -37,7 +43,14 @@ nav {
 }
 
 nav img {
+    position: absolute;
+    left: 2%;
+    top: 1%;
     width: 150px;
+}
+
+.top {
+    background-image: linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0)), url();
 }
 
 .nav-links {
