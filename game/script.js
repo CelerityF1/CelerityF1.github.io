@@ -42,6 +42,7 @@ class Grid {
     this.next_activation = -1;
     this.base_chance = 0.0005;
     this.bool = false;
+    this.loop = 0;
   }
   createGrid() {
     let size = 75;
@@ -52,7 +53,7 @@ class Grid {
         this.moles.push(
           new Mole(
             this, {
-              x: pixelX((500 - size / 2) + x * (size + padding)),
+              x: pixelX(500 - size / 2 + x * (size + padding)),
               y: y_height + pixelX(y * (size + padding)),
             }, { x: pixelX(size), y: pixelX(size) }
           )
@@ -63,11 +64,12 @@ class Grid {
   createStrikeMarks() {
     let size = 25;
     let padding = 10;
-    let y_h = pixelY(60)
+    let y_h = pixelY(60);
     for (var i = -1; i < 2; i++) {
-      this.strikeMarks.push(new Sprite({ x: pixelX((500 - size / 2) + i * (size + padding)), y: y_h }, { x: pixelX(size), y: pixelX(size) }))
+      this.strikeMarks.push(
+        new Sprite({ x: pixelX(500 - size / 2 + i * (size + padding)), y: y_h }, { x: pixelX(size), y: pixelX(size) })
+      );
     }
-
   }
   gameClick(position) {
     for (var i = 0, l = this.moles.length; i < l; i++) {
@@ -90,9 +92,9 @@ class Grid {
   draw(click) {
     for (var i = 0; i < 3; i++) {
       if (i < this.strikes) {
-        this.strikeMarks[i].draw("red")
+        this.strikeMarks[i].draw("red");
       } else {
-        this.strikeMarks[i].draw("black")
+        this.strikeMarks[i].draw("black");
       }
     }
     for (var i = 0, l = this.moles.length; i < l; i++) {
@@ -100,7 +102,7 @@ class Grid {
     }
   }
   update(click) {
-
+    this.loop++;
     if (this.start_time == 0) {
       this.start_time = Date.now() / 1000;
     }
@@ -110,21 +112,23 @@ class Grid {
       this.next_activation =
         this.next_activation - (this.current - this.lastCall);
     } else if (
-      this.next_activation <= 0 &&
-      this.activated.length < this.difficulty - 1
+      this.next_activation < 0 &&
+      this.activated.length < this.difficulty - 1 && 0 < this.activated.length
     ) {
       this.next_activation = 1 / (0.5 * this.difficulty);
       this.not_activated[
         randomInt(0, this.not_activated.length - 1)
       ].activate(this.difficulty);
+      console.log(this.activated);
     } else if (
       this.next_activation == -1 &&
-      this.activated.length < this.difficulty - 1
+      this.activated.length < this.difficulty - 1 && 0 < this.activated.length
     ) {
       this.next_activation = 1 / (0.5 * this.difficulty);
       this.not_activated[
         randomInt(0, this.not_activated.length - 1)
       ].activate(this.difficulty);
+      console.log(this.activated);
     } else {
       this.next_activation = -1;
     }
@@ -133,11 +137,9 @@ class Grid {
     }
     for (var i = 0; i < 3; i++) {
       if (i < this.strikes) {
-        console.log(this.strikeMarks)
-        this.strikeMarks[i].draw("red")
+        this.strikeMarks[i].draw("red");
       } else {
-        console.log(this.strikeMarks)
-        this.strikeMarks[i].draw("black")
+        this.strikeMarks[i].draw("black");
       }
     }
     for (var i = 0, l = this.moles.length; i < l; i++) {
@@ -158,18 +160,18 @@ class Grid {
 
 const grid = new Grid();
 
-
-
 class Mole {
   constructor(parent, position, size) {
     this.parent = parent;
     this.sprite = new Sprite(position, size);
-    this.img_on = "red";
+    this.img_on = "blue";
     this.img_off = "black";
-    this.active = 0;
+    this.img_fail = "red";
+    this.status = 0;
     this.timeLeft = -1;
     this.base_time = 3;
     this.clicked_on = false;
+    this.cool_down = 0;
     this.lastCall = Date.now() / 1000;
     this.current = Date.now() / 1000;
     this.expired = false;
@@ -182,9 +184,8 @@ class Mole {
         1
       );
       this.parent.activated.push(this);
-      this.active = 1;
+      this.status = 1;
       this.timeLeft = this.base_time / difficulty;
-      console.log(this.timeLeft, this.base_time, difficulty)
     }
   }
   onClick() {
@@ -195,29 +196,50 @@ class Mole {
   }
   update() {
     this.current = Date.now() / 1000;
-    switch (this.active) {
+    switch (this.status) {
       case 0:
         this.sprite.draw(this.img_off);
         break;
       case 1:
         if (this.clicked_on) {
-          this.active = 0;
+          this.status = 3;
+          this.cool_down = 5;
           this.timeLeft = -1;
           this.clicked_on = false;
           this.sprite.draw(this.img_off);
-          this.parent.not_activated.push(this);
-          this.parent.activated.splice(this.parent.activated.indexOf(this), 1);
           break;
         }
         this.sprite.draw(this.img_on);
         this.timeLeft = this.timeLeft - (this.current - this.lastCall);
-        console.log(this.timeLeft)
         if (this.timeLeft < 0) {
-          this.active = 0;
+          this.status = 2;
+          this.cool_down = 1;
           this.timeLeft = -1;
           this.expired = true;
-          this.parent.not_activated.push(this);
+        }
+        break;
+      case 2:
+        if (0.9 < this.cool_down) {
+          this.sprite.draw(this.img_fail);
+        } else if (0.7 < this.cool_down && this.cool_down < 0.8) {
+          this.sprite.draw(this.img_fail);
+        } else {
+          this.sprite.draw(this.img_off);
+        }
+        this.cool_down = this.cool_down - (this.current - this.lastCall);
+        if (this.cool_down < 0) {
+          this.status = 0;
           this.parent.activated.splice(this.parent.activated.indexOf(this), 1);
+          this.parent.not_activated.push(this);
+        }
+        break;
+      case 3:
+        this.sprite.draw(self.img_off);
+        this.cool_down = this.cool_down - (this.current - this.lastCall);
+        if (this.cool_down < 0) {
+          this.status = 0;
+          this.parent.activated.splice(this.parent.activated.indexOf(this), 1);
+          this.parent.not_activated.push(this);
         }
         break;
     }
@@ -243,15 +265,21 @@ function loop() {
   window.requestAnimationFrame(loop);
   c.fillStyle = "orange";
   c.fillRect(0, 0, canvas.width, canvas.height);
-  drawText(Math.trunc(grid.difficulty * 1000), "60px Arial", "black", { x: pixelX(100), y: 60 });
-  grid.update(clickData);
+  drawText(Math.trunc(grid.difficulty * 1000), "60px Arial", "black", {
+    x: pixelX(100),
+    y: 60,
+  });
+  if (grid.strikes > 2) {
+    grid.draw(clickData);
+  } else {
+    grid.update(clickData);
+  }
   clickData[0] = false;
 }
 
 function click(event) {
   clickData = [true, event];
 }
-
 document.addEventListener("click", click);
 
 function init() {
