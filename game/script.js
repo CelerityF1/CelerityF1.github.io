@@ -26,31 +26,43 @@ class Grid {
   constructor() {
     this.moles = [];
     this.activated = [];
+    this.not_activated = [];
     this.difficulty = 0;
     this.dif_scaling = 0.125;
     this.strikes = 0;
-    this.start_time = Date.now() / 1000;
+    this.strikeMarks = [];
+    this.start_time = 0;
     this.lastCall = Date.now() / 1000;
     this.current = Date.now() / 1000;
+    this.next_activation = -1;
     this.base_chance = 0.0005;
-    this.bool = false
+    this.bool = false;
   }
   createGrid() {
-    let size = 100;
-    let padding = 50;
-    let y_height = 200;
+    let size = 75;
+    let padding = 30;
+    let y_height = pixelY(500 - size / 2);
     for (var x = -1; x < 2; x++) {
       for (var y = -1; y < 2; y++) {
         this.moles.push(
           new Mole(
             this, {
-              x: pixel(450 + x * (size + padding)),
-              y: pixel(y_height + y * (size + padding)),
-            }, { x: pixel(size), y: pixel(size) }
+              x: pixelX((500 - size / 2) + x * (size + padding)),
+              y: y_height + pixelX(y * (size + padding)),
+            }, { x: pixelX(size), y: pixelX(size) }
           )
         );
       }
     }
+  }
+  createStrikeMarks() {
+    let size = 25;
+    let padding = 10;
+    let y_h = pixelY(60)
+    for (var i = -1; i < 2; i++) {
+      this.strikeMarks.push(new Sprite({ x: pixelX((500 - size / 2) + i * (size + padding)), y: y_h }, { x: pixelX(size), y: pixelX(size) }))
+    }
+
   }
   gameClick(position) {
     for (var i = 0, l = this.moles.length; i < l; i++) {
@@ -65,43 +77,83 @@ class Grid {
           this.moles[i].sprite.position.y + this.moles[i].sprite.size.y
         ) {
           this.moles[i].onClick();
+          return;
         }
       }
     }
   }
   draw(click) {
+    for (var i = 0; i < 3; i++) {
+      if (i < this.strikes) {
+        this.strikeMarks[i].draw("red")
+      } else {
+        this.strikeMarks[i].draw("black")
+      }
+    }
     for (var i = 0, l = this.moles.length; i < l; i++) {
-      // console.log(this.mole[i].position)
       this.moles[i].update();
     }
   }
   update(click) {
+
+    if (this.start_time == 0) {
+      this.start_time = Date.now() / 1000;
+    }
     this.current = Date.now() / 1000;
-    this.difficulty = this.dif_scaling * (this.current - this.start_time) + 1;
-    if (
-      chance(
-        (this.base_chance * (this.difficulty / 10)) /
-        (this.current - this.lastCall)
-      ) && this.activated.length < this.difficulty
+    this.difficulty = Math.sqrt(this.current - this.start_time) * 0.5 + 1;
+    if (this.next_activation > 0) {
+      this.next_activation =
+        this.next_activation - (this.current - this.lastCall);
+    } else if (
+      this.next_activation <= 0 &&
+      this.activated.length < this.difficulty - 1
     ) {
-      this.moles[randomInt(0, 8)].activate(this.difficulty)
+      this.next_activation = 1 / (0.5 * this.difficulty);
+      this.not_activated[
+        randomInt(0, this.not_activated.length - 1)
+      ].activate(this.difficulty);
+    } else if (
+      this.next_activation == -1 &&
+      this.activated.length < this.difficulty - 1
+    ) {
+      this.next_activation = 1 / (0.5 * this.difficulty);
+      this.not_activated[
+        randomInt(0, this.not_activated.length - 1)
+      ].activate(this.difficulty);
+    } else {
+      this.next_activation = -1;
     }
     if (click[0]) {
       this.gameClick({ x: click[1].clientX, y: click[1].clientY });
     }
+    for (var i = 0; i < 3; i++) {
+      if (i < this.strikes) {
+        console.log(this.strikeMarks)
+        this.strikeMarks[i].draw("red")
+      } else {
+        console.log(this.strikeMarks)
+        this.strikeMarks[i].draw("black")
+      }
+    }
     for (var i = 0, l = this.moles.length; i < l; i++) {
-      // console.log(this.mole[i].position)
       this.moles[i].update(this.difficulty);
       if (this.moles[i].expired) {
         this.moles[i].expired = false;
         this.strikes++;
       }
     }
+    if (this.next_activation > 0) {
+      this.next_activation =
+        this.next_activation - (this.current - this.lastCall);
+    }
+
     this.lastCall = this.current;
   }
 }
 
 const grid = new Grid();
+
+
 
 class Mole {
   constructor(parent, position, size) {
@@ -116,12 +168,18 @@ class Mole {
     this.lastCall = Date.now() / 1000;
     this.current = Date.now() / 1000;
     this.expired = false;
+    this.parent.not_activated.push(this);
   }
   activate(difficulty) {
     if (this.activate != 1) {
+      this.parent.not_activated.splice(
+        this.parent.not_activated.indexOf(this),
+        1
+      );
       this.parent.activated.push(this);
       this.active = 1;
       this.timeLeft = this.base_time / difficulty;
+      console.log(this.timeLeft, this.base_time, difficulty)
     }
   }
   onClick() {
@@ -130,16 +188,11 @@ class Mole {
   draw() {
     this.sprite.draw(this.img_off);
   }
-  update(difficulty) {
+  update() {
     this.current = Date.now() / 1000;
     switch (this.active) {
       case 0:
         this.sprite.draw(this.img_off);
-        if (this.clicked_on) {
-          this.active = 2;
-          this.timeLeft = this.base_time / 3 / difficulty;
-          this.clicked_on = false;
-        }
         break;
       case 1:
         if (this.clicked_on) {
@@ -147,25 +200,19 @@ class Mole {
           this.timeLeft = -1;
           this.clicked_on = false;
           this.sprite.draw(this.img_off);
-          this.parent.activated.splice(this.parent.activated.indexOf(this), 1)
+          this.parent.not_activated.push(this);
+          this.parent.activated.splice(this.parent.activated.indexOf(this), 1);
           break;
         }
         this.sprite.draw(this.img_on);
         this.timeLeft = this.timeLeft - (this.current - this.lastCall);
-        if (this.timeLeft <= 0) {
+        console.log(this.timeLeft)
+        if (this.timeLeft < 0) {
           this.active = 0;
           this.timeLeft = -1;
           this.expired = true;
-        }
-        break;
-
-      case 2:
-        this.sprite.draw(this.img_off);
-        this.timeLeft = this.timeLeft - (this.current - this.lastCall);
-        if (this.timeLeft <= 0) {
-          this.parent.activated.push(this);
-          this.active = 1;
-          this.timeLeft = this.base_time / difficulty;
+          this.parent.not_activated.push(this);
+          this.parent.activated.splice(this.parent.activated.indexOf(this), 1);
         }
         break;
     }
@@ -184,7 +231,6 @@ class Sprite {
   draw(colour) {
     c.fillStyle = colour;
     c.fillRect(this.position.x, this.position.y, this.size.x, this.size.y);
-    c.fillStyle = "blue";
   }
 }
 
@@ -192,7 +238,7 @@ function loop() {
   window.requestAnimationFrame(loop);
   c.fillStyle = "orange";
   c.fillRect(0, 0, canvas.width, canvas.height);
-  drawText(grid.strikes, "60px Arial", "black", { x: pixel(490), y: 60 });
+  drawText(Math.trunc(grid.difficulty * 1000), "60px Arial", "black", { x: pixelX(100), y: 60 });
   grid.update(clickData);
   clickData[0] = false;
 }
@@ -210,5 +256,6 @@ function init() {
   canvas.height = window.innerHeight;
   c.fillRect(0, 0, canvas.width, canvas.height);
   grid.createGrid();
+  grid.createStrikeMarks();
   loop();
 }
