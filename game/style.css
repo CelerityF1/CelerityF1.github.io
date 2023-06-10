@@ -11,3 +11,11 @@ button {
     left: 50%;
     transform: translate(-50%, -50%);
 }
+
+nav img {
+    position: absolute;
+    left: 2%;
+    top: 1%;
+    height: auto;
+    width: 8%;
+}
