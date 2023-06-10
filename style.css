@@ -30,7 +30,7 @@ nav img {
     position: absolute;
     left: 2%;
     top: 1%;
-    max-width: 8%;
+    width: 8vw;
     height: auto;
 }
 

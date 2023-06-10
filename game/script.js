@@ -1,10 +1,19 @@
 const canvas = document.getElementById("mainCanvas");
 const c = canvas.getContext("2d");
-c.font = "30px Arial";
-const celerityOrange = "#ee7010"
-const sf = 0.5;
+const celerityOrange = "#ee7010";
 let clickData = [false, {}];
+var navLinks = document.getElementById("navLinks");
 
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+function showMenu() {
+  navLinks.style.right = "0";
+}
+
+function hideMenu() {
+  navLinks.style.right = "-200px";
+}
 
 function pixelX(num) {
   return Math.round(num * (canvas.width / 1000));
@@ -21,6 +30,10 @@ function randomInt(min, max) {
 
 function chance(percent) {
   return Math.random() < percent;
+}
+
+function getFont(relativeSize, font) {
+  return pixelX(relativeSize) + "px " + font;
 }
 
 function drawText(text, font, colour, position) {
@@ -43,12 +56,12 @@ class Grid {
     this.current = Date.now() / 1000;
     this.next_activation = -1;
     this.base_chance = 0.0005;
-    this.bool = false;
     this.loop = 0;
+    this.status = "off";
   }
   createGrid() {
-    let size = 75;
-    let padding = 30;
+    let size = 80;
+    let padding = 20;
     let y_height = pixelY(500 - size / 2);
     for (var x = -1; x < 2; x++) {
       for (var y = -1; y < 2; y++) {
@@ -69,8 +82,45 @@ class Grid {
     let y_h = pixelY(75);
     for (var i = -1; i < 2; i++) {
       this.strikeMarks.push(
-        new Sprite({ x: pixelX(500 - size / 2 + i * (size + padding)), y: y_h }, { x: pixelX(size), y: pixelX(size) })
+        new Rectangle({ x: pixelX(500 - size / 2 + i * (size + padding)), y: y_h }, { x: pixelX(size), y: pixelX(size) })
       );
+    }
+  }
+  startGame() {
+    this.reset();
+    this.status = "game";
+  }
+  endGame() {
+    this.status = "menu";
+    for (var i = 0; i < this.moles.length; i++) {
+      if (this.moles[i].status != "cooldown-expired") {
+        this.moles[i].deactive();
+      }
+    }
+  }
+  reset() {
+    this.moles = [];
+    this.activated = [];
+    this.not_activated = [];
+    this.strikes = 0;
+    this.strikeMarks = [];
+    this.start_time = 0;
+    this.lastCall = Date.now() / 1000;
+    this.current = Date.now() / 1000;
+    this.next_activation = -1;
+    this.loop = 0;
+    this.status = "off";
+    this.createGrid();
+    this.createStrikeMarks();
+  }
+  update(click) {
+    switch (this.status) {
+      case "menu":
+        this.menuUpdate(click);
+        break;
+      case "game":
+        this.gameUpdate(click);
+        break;
     }
   }
   gameClick(position) {
@@ -91,7 +141,7 @@ class Grid {
       }
     }
   }
-  draw(click) {
+  menuUpdate(click) {
     for (var i = 0; i < 3; i++) {
       if (i < this.strikes) {
         this.strikeMarks[i].draw("red");
@@ -103,13 +153,14 @@ class Grid {
       this.moles[i].update();
     }
   }
-  update(click) {
+  gameUpdate(click) {
     this.loop++;
     if (this.start_time == 0) {
       this.start_time = Date.now() / 1000;
     }
     this.current = Date.now() / 1000;
-    this.difficulty = Math.sqrt(this.current - this.start_time) * this.dif_scaling + 1;
+    this.difficulty =
+      Math.sqrt(this.current - this.start_time) * this.dif_scaling + 1;
     if (this.next_activation > 0) {
       this.next_activation =
         this.next_activation - (this.current - this.lastCall);
@@ -118,19 +169,19 @@ class Grid {
       this.activated.length < this.difficulty - 1
     ) {
       this.next_activation = 1 / (0.5 * this.difficulty);
-      this.not_activated[
-        randomInt(0, this.not_activated.length - 1)
-      ].activate(this.difficulty);
-      console.log(this.activated)
+      this.not_activated[randomInt(0, this.not_activated.length - 1)].activate(
+        this.difficulty
+      );
+      console.log(this.activated);
     } else if (
       this.next_activation == -1 &&
       this.activated.length < this.difficulty - 1
     ) {
       this.next_activation = 1 / (0.5 * this.difficulty);
-      this.not_activated[
-        randomInt(0, this.not_activated.length - 1)
-      ].activate(this.difficulty);
-      console.log(this.activated)
+      this.not_activated[randomInt(0, this.not_activated.length - 1)].activate(
+        this.difficulty
+      );
+      console.log(this.activated);
     } else {
       this.next_activation = -1;
     }
@@ -151,6 +202,9 @@ class Grid {
         this.strikes++;
       }
     }
+    if (this.strikes >= 3) {
+      this.endGame();
+    }
     if (this.next_activation > 0) {
       this.next_activation =
         this.next_activation - (this.current - this.lastCall);
@@ -160,17 +214,15 @@ class Grid {
   }
 }
 
-const grid = new Grid();
-
 class Mole {
   constructor(parent, position, size) {
     this.parent = parent;
-    this.position = position
-    this.sprite = new Sprite(position, size);
+    this.position = position;
+    this.sprite = new Rectangle(position, size);
     this.img_on = "blue";
     this.img_off = "black";
     this.img_fail = "red";
-    this.status = 0;
+    this.status = "off";
     this.timeLeft = -1;
     this.base_time = 3;
     this.clicked_on = false;
@@ -187,9 +239,16 @@ class Mole {
         1
       );
       this.parent.activated.push(this);
-      this.status = 1;
+      this.status = "on";
       this.timeLeft = this.base_time / difficulty;
     }
+  }
+  deactive() {
+    this.status = "cooldown-expired";
+    this.cool_down = 1;
+    this.parent.activated.splice(this.parent.activated.indexOf(this), 1);
+    this.parent.not_activated.push(this);
+    this.timeLeft = -1;
   }
   onClick() {
     this.clicked_on = true;
@@ -200,12 +259,12 @@ class Mole {
   update() {
     this.current = Date.now() / 1000;
     switch (this.status) {
-      case 0:
+      case "off":
         this.sprite.draw(this.img_off);
         break;
-      case 1:
+      case "on":
         if (this.clicked_on) {
-          this.status = 3;
+          this.status = "cooldown-clicked";
           this.cool_down = 0.5;
           this.timeLeft = -1;
           this.clicked_on = false;
@@ -215,13 +274,13 @@ class Mole {
         this.sprite.draw(this.img_on);
         this.timeLeft = this.timeLeft - (this.current - this.lastCall);
         if (this.timeLeft < 0) {
-          this.status = 2;
+          this.status = "cooldown-expired";
           this.cool_down = 1;
           this.timeLeft = -1;
           this.expired = true;
         }
         break;
-      case 2:
+      case "cooldown-expired":
         if (0.9 < this.cool_down) {
           this.sprite.draw(this.img_fail);
         } else if (0.7 < this.cool_down && this.cool_down < 0.8) {
@@ -231,18 +290,18 @@ class Mole {
         }
         this.cool_down = this.cool_down - (this.current - this.lastCall);
         if (this.cool_down <= 0) {
-          this.status = 0;
-          this.cool_down = 0
+          this.status = "off";
+          this.cool_down = 0;
           this.parent.activated.splice(this.parent.activated.indexOf(this), 1);
           this.parent.not_activated.push(this);
         }
         break;
-      case 3:
+      case "cooldown-clicked":
         this.sprite.draw(this.img_off);
         this.cool_down = this.cool_down - (this.current - this.lastCall);
         if (this.cool_down <= 0) {
-          this.status = 0;
-          this.cool_down = 0
+          this.status = "off";
+          this.cool_down = 0;
           this.parent.activated.splice(this.parent.activated.indexOf(this), 1);
           this.parent.not_activated.push(this);
         }
@@ -253,12 +312,47 @@ class Mole {
   }
 }
 
-class Sprite {
+class Button {
+  constructor(
+    text,
+    font,
+    text_colour,
+    background_colour,
+    position,
+    size,
+    offsetText,
+    action
+  ) {
+    this.position = position;
+    this.size = size;
+    this.background = new Rectangle(position, size);
+    this.action = action;
+    this.textData = [
+      text,
+      font,
+      text_colour,
+      {
+        x: position.x + size.x / 2 + offsetText.x,
+        y: position.y + size.y / 2 + offsetText.y,
+      },
+    ];
+    this.background_colour = background_colour;
+  }
+  update() {
+    this.background.draw(this.background_colour);
+    drawText(
+      this.textData[0],
+      this.textData[1],
+      this.textData[2],
+      this.textData[3]
+    );
+  }
+}
+
+class Rectangle {
   constructor(position, size) {
     this.position = position;
     this.size = size;
-    this.sf = sf;
-    return this;
   }
   draw(colour) {
     c.fillStyle = colour;
@@ -266,19 +360,69 @@ class Sprite {
   }
 }
 
-function loop() {
-  window.requestAnimationFrame(loop);
-  c.fillStyle = celerityOrange;
-  c.fillRect(0, 0, canvas.width, canvas.height);
-  drawText(Math.trunc(grid.difficulty * 1000), "60px Arial", "black", {
-    x: pixelX(100),
-    y: 60,
-  });
-  if (grid.strikes > 2) {
-    grid.draw(clickData);
-  } else {
-    grid.update(clickData);
+class Game {
+  constructor() {
+    this.grid = new Grid();
+    this.back_col = celerityOrange;
+    this.status = "";
+
+    this.buttons = [
+      new Button(
+        "Start",
+        getFont(30, "Poppins"),
+        "black",
+        "#cf5204", { x: pixelX(450), y: pixelY(400) }, { x: pixelX(100), y: pixelX(50) }, { x: pixelX(-35), y: pixelX(10) },
+        this.startGame
+      ),
+      new Button(
+        "Exit",
+        getFont(30, "Poppins"),
+        "black",
+        "#cf5204", { x: pixelX(450), y: pixelY(530) }, { x: pixelX(100), y: pixelX(50) }, { x: pixelX(-25), y: pixelX(10) },
+        this.setMenu
+      ),
+    ];
   }
+  init() {
+    this.grid.reset();
+    this.grid.status = "menu";
+    this.background = new Rectangle({ x: 0, y: 0 }, { x: pixelX(1000), y: pixelY(1000) });
+  }
+  setMenu() {
+    this.status = "start_menu";
+    this.grid.reset();
+    this.grid.status = "menu";
+  }
+  startGame() {
+    this.status = "game";
+    this.grid.startGame();
+  }
+  update(click) {
+    switch (this.status) {
+      case "start_menu":
+        this.background.draw(this.back_col);
+        //this.grid.update(click);
+        for (var i = 0; i < this.buttons.length; i++) {
+          this.buttons[i].update();
+        }
+
+        if (click[0] == true) {
+          console.log("click");
+          this.startGame();
+        }
+        break;
+      case "game":
+        this.background.draw(this.back_col);
+        this.grid.update(click);
+    }
+  }
+}
+
+scene = new Game();
+
+function mainLoop() {
+  window.requestAnimationFrame(mainLoop);
+  scene.update(clickData);
   clickData[0] = false;
 }
 
@@ -288,12 +432,9 @@ function click(event) {
 document.addEventListener("click", click);
 
 function init() {
-  let button = document.getElementById("startButton");
-  button.hidden = true;
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  c.fillRect(0, 0, canvas.width, canvas.height);
-  grid.createGrid();
-  grid.createStrikeMarks();
-  loop();
+  scene.init();
+  scene.setMenu();
+  mainLoop();
 }
+
+init();
