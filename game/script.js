@@ -7,6 +7,14 @@ var navLinks = document.getElementById("navLinks");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+let portrait = false
+
+if (canvas.height > canvas.width) {
+  portrait = true
+} else {
+  portrait = false
+}
+
 function showMenu() {
   navLinks.style.right = "0";
 }
@@ -15,12 +23,20 @@ function hideMenu() {
   navLinks.style.right = "-200px";
 }
 
+function pixelAbs(num) {
+  if (canvas.width > canvas.height) {
+    return Math.trunc(num * (canvas.width / 1000) + 0.5)
+  } else {
+    return Math.trunc(num * (canvas.height / 1000) + 0.5)
+  }
+}
+
 function pixelX(num) {
-  return Math.round(num * (canvas.width / 1000));
+  return Math.trunc(num * (canvas.width / 1000) + 0.5);
 }
 
 function pixelY(num) {
-  return Math.round(num * (canvas.height / 1000));
+  return Math.trunc(num * (canvas.height / 1000) + 0.5);
 }
 
 function randomInt(min, max) {
@@ -142,6 +158,7 @@ class Grid {
     }
   }
   menuUpdate(click) {
+    drawText(Math.trunc(this.difficulty * 1000), getFont(20, "Poppins"), "black", { x: pixelX(30), y: pixelY(30) })
     for (var i = 0; i < 3; i++) {
       if (i < this.strikes) {
         this.strikeMarks[i].draw("red");
@@ -154,6 +171,7 @@ class Grid {
     }
   }
   gameUpdate(click) {
+    drawText(Math.trunc(this.difficulty * 1000), getFont(20, "Poppins"), "black", { x: pixelX(30), y: pixelY(50) })
     this.loop++;
     if (this.start_time == 0) {
       this.start_time = Date.now() / 1000;
@@ -321,8 +339,10 @@ class Button {
     position,
     size,
     offsetText,
+    parent,
     action
   ) {
+    this.parent = parent;
     this.position = position;
     this.size = size;
     this.background = new Rectangle(position, size);
@@ -338,7 +358,7 @@ class Button {
     ];
     this.background_colour = background_colour;
   }
-  update() {
+  update(click) {
     this.background.draw(this.background_colour);
     drawText(
       this.textData[0],
@@ -346,6 +366,17 @@ class Button {
       this.textData[2],
       this.textData[3]
     );
+    if (
+      this.position.x < click[1].clientX &&
+      click[1].clientX < this.position.x + this.size.x
+    ) {
+      if (
+        this.position.y < click[1].clientY &&
+        click[1].clientY < this.position.y + this.size.y
+      ) {
+        this.parent.buttonAction(this.action);
+      }
+    }
   }
 }
 
@@ -372,14 +403,16 @@ class Game {
         getFont(30, "Poppins"),
         "black",
         "#cf5204", { x: pixelX(450), y: pixelY(400) }, { x: pixelX(100), y: pixelX(50) }, { x: pixelX(-35), y: pixelX(10) },
-        this.startGame
+        this,
+        "startGame"
       ),
       new Button(
         "Exit",
         getFont(30, "Poppins"),
         "black",
         "#cf5204", { x: pixelX(450), y: pixelY(530) }, { x: pixelX(100), y: pixelX(50) }, { x: pixelX(-25), y: pixelX(10) },
-        this.setMenu
+        this,
+        "exit"
       ),
     ];
   }
@@ -387,6 +420,21 @@ class Game {
     this.grid.reset();
     this.grid.status = "menu";
     this.background = new Rectangle({ x: 0, y: 0 }, { x: pixelX(1000), y: pixelY(1000) });
+  }
+  reset() {
+    this.buttons = [];
+  }
+  buttonAction(action) {
+    switch (action) {
+      case "startGame":
+        this.reset();
+        this.startGame();
+        break;
+      case "exit":
+        this.reset();
+        this.exit();
+        break;
+    }
   }
   setMenu() {
     this.status = "start_menu";
@@ -397,18 +445,20 @@ class Game {
     this.status = "game";
     this.grid.startGame();
   }
+  exit() {
+    this.status = "off";
+    window.location.href = "../";
+  }
   update(click) {
     switch (this.status) {
       case "start_menu":
         this.background.draw(this.back_col);
         //this.grid.update(click);
         for (var i = 0; i < this.buttons.length; i++) {
-          this.buttons[i].update();
+          this.buttons[i].update(click);
         }
-
-        if (click[0] == true) {
-          console.log("click");
-          this.startGame();
+        if (portrait) {
+          drawText("Turn your device landscape and reload for a better experience", getFont(20, "Poppins"), "black", { x: pixelX(200), y: pixelY(700) })
         }
         break;
       case "game":
