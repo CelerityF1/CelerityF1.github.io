@@ -7,16 +7,16 @@ var navLinks = document.getElementById("navLinks");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let portrait = false
+let portrait = false;
 
 if (canvas.height > canvas.width) {
-  portrait = true
+  portrait = true;
 } else {
-  portrait = false
+  portrait = false;
 }
 
 function getAverage(array) {
-  return (array.reduce((a, b) => a + b, 0) / array.length) || 0;
+  return array.reduce((a, b) => a + b, 0) / array.length || 0;
 }
 
 function showMenu() {
@@ -29,9 +29,9 @@ function hideMenu() {
 
 function pixelAbs(num) {
   if (canvas.width > canvas.height) {
-    return Math.trunc(num * (canvas.width / 1000) + 0.5)
+    return Math.trunc(num * (canvas.width / 1000) + 0.5);
   } else {
-    return Math.trunc(num * (canvas.height / 1000) + 0.5)
+    return Math.trunc(num * (canvas.height / 1000) + 0.5);
   }
 }
 
@@ -78,17 +78,18 @@ class Grid {
     this.base_chance = 0.0005;
     this.loop = 0;
     this.status = "off";
+    this.reactionTimes = [];
   }
   createGrid() {
     let size = 100;
     let padding = 20;
-    let y_height = pixelY(500 - (size));
+    let y_height = pixelY(500 - size);
     for (var x = -1; x < 2; x++) {
       for (var y = -1; y < 2; y++) {
         this.moles.push(
           new Mole(
             this, {
-              x: pixelX(500 - (size / 2) + x * (size + padding)),
+              x: pixelX(500 - size / 2 + x * (size + padding)),
               y: y_height + pixelX(y * (size + padding)),
             }, { x: pixelX(size), y: pixelX(size) }
           )
@@ -102,7 +103,7 @@ class Grid {
     let y_h = pixelY(75);
     for (var i = -1; i < 2; i++) {
       this.strikeMarks.push(
-        new Rectangle({ x: pixelX(500 - (size / 2) + (i * (size + padding))), y: y_h }, { x: pixelX(size), y: pixelX(size) })
+        new Rectangle({ x: pixelX(500 - size / 2 + i * (size + padding)), y: y_h }, { x: pixelX(size), y: pixelX(size) })
       );
     }
   }
@@ -130,6 +131,7 @@ class Grid {
     this.next_activation = -1;
     this.loop = 0;
     this.status = "off";
+    this.reactionTimes = [];
     this.createGrid();
     this.createStrikeMarks();
   }
@@ -165,11 +167,18 @@ class Grid {
     }
   }
   drawScoreInfo() {
-    drawText("Your score:", getFont(10, "Poppins"), "black", { x: pixelX(160), y: pixelY(450) })
-    drawText(Math.trunc(this.difficulty * 1000), getFont(50, "Poppins"), "black", { x: pixelX(130), y: pixelY(540) })
+    drawText("Your score:", getFont(10, "Poppins"), "black", {
+      x: pixelX(160),
+      y: pixelY(450),
+    });
+    drawText(
+      Math.trunc(this.difficulty * 1000),
+      getFont(50, "Poppins"),
+      "black", { x: pixelX(130), y: pixelY(540) }
+    );
   }
   menuUpdate(click) {
-    this.drawScoreInfo()
+    this.drawScoreInfo();
     for (var i = 0; i < 3; i++) {
       if (i < this.strikes) {
         this.strikeMarks[i].draw("red");
@@ -183,7 +192,7 @@ class Grid {
   }
   gameUpdate(click) {
     this.loop++;
-    this.drawScoreInfo()
+    this.drawScoreInfo();
     if (this.start_time == 0) {
       this.start_time = Date.now() / 1000;
     }
@@ -257,10 +266,12 @@ class Mole {
     this.lastCall = Date.now() / 1000;
     this.current = Date.now() / 1000;
     this.expired = false;
+    this.activationTime = 0;
     this.parent.not_activated.push(this);
   }
   activate(difficulty) {
     if (this.status != 1) {
+      this.activationTime = Date.now() / 1000
       this.parent.not_activated.splice(
         this.parent.not_activated.indexOf(this),
         1
@@ -291,6 +302,7 @@ class Mole {
         break;
       case "on":
         if (this.clicked_on) {
+          this.parent.reactionTimes.push(Date.now() / 1000 - this.activationTime)
           this.status = "cooldown-clicked";
           this.cool_down = 0.5;
           this.timeLeft = -1;
@@ -411,7 +423,7 @@ class Game {
     this.grid = new Grid();
     this.back_col = celerityOrange;
     this.status = "";
-    this.wait = [0, Date.now()]
+    this.wait = [0, Date.now()];
     this.buttons = [];
   }
   init() {
@@ -434,7 +446,7 @@ class Game {
         break;
       case "menu":
         this.reset();
-        this.setMenu()
+        this.setMenu();
     }
   }
   setMenu() {
@@ -470,21 +482,21 @@ class Game {
         "Retry",
         getFont(30, "Poppins"),
         "black",
-        "#cf5204", { x: pixelX(450), y: pixelY(390) }, { x: pixelX(100), y: pixelX(50) }, { x: pixelX(-37), y: pixelX(10) },
+        "#cf5204", { x: pixelX(450), y: pixelY(400) }, { x: pixelX(100), y: pixelX(50) }, { x: pixelX(-37), y: pixelX(10) },
         this,
         "startGame"
       ),
       new Button(
-        "Exit",
+        "Back",
         getFont(30, "Poppins"),
         "black",
-        "#cf5204", { x: pixelX(450), y: pixelY(520) }, { x: pixelX(100), y: pixelX(50) }, { x: pixelX(-25), y: pixelX(10) },
+        "#cf5204", { x: pixelX(450), y: pixelY(530) }, { x: pixelX(100), y: pixelX(50) }, { x: pixelX(-35), y: pixelX(10) },
         this,
         "menu"
       ),
     ];
     this.status = "gameover";
-    this.wait = [5, Date.now() / 1000]
+    this.wait = [5, Date.now() / 1000];
   }
   exit() {
     this.status = "off";
@@ -494,27 +506,53 @@ class Game {
     switch (this.status) {
       case "start_menu":
         this.background.draw(this.back_col);
-        //this.grid.update(click);
         for (var i = 0; i < this.buttons.length; i++) {
           this.buttons[i].update(click);
         }
+        drawText(
+          "[Game name]",
+          getFont(50, "Poppins"),
+          "black", { x: pixelX(320), y: pixelY(200) }
+        );
         if (portrait) {
-          drawText("Turn your device landscape and reload for a better experience", getFont(20, "Poppins"), "black", { x: pixelX(200), y: pixelY(700) })
+          drawText(
+            "Turn your device landscape and reload for a better experience",
+            getFont(20, "Poppins"),
+            "black", { x: pixelX(200), y: pixelY(700) }
+          );
         }
         break;
       case "game":
         this.background.draw(this.back_col);
         this.grid.update(click);
         if (this.grid.status == "gameover") {
-          this.endGame()
+          this.endGame();
         }
         break;
       case "gameover":
         this.background.draw(this.back_col);
         if (this.wait[0] > 0) {
-          this.wait = [this.wait[0] - (Date.now() / 1000 - this.wait[1]), this.wait[1]]
-          this.grid.update(click)
+          this.wait = [
+            this.wait[0] - (Date.now() / 1000 - this.wait[1]),
+            this.wait[1],
+          ];
+          this.grid.update(click);
         } else {
+          drawText(
+            "Game over.",
+            getFont(50, "Poppins"),
+            "black", { x: pixelX(360), y: pixelY(200) }
+          );
+          drawText(
+            "Your score was " + Math.trunc(this.grid.difficulty * 1000),
+            getFont(30, "Poppins"),
+            "black", { x: pixelX(350), y: pixelY(290) }
+          );
+          drawText(
+            "Average reaction time: " + Math.trunc(getAverage(this.grid.reactionTimes) * 1000) + "ms",
+            getFont(20, "Poppins"),
+            "black", { x: pixelX(355), y: pixelY(360) }
+          );
           for (var i = 0; i < this.buttons.length; i++) {
             this.buttons[i].update(click);
           }
