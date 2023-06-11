@@ -15,6 +15,10 @@ if (canvas.height > canvas.width) {
   portrait = false
 }
 
+function getAverage(array) {
+  return (array.reduce((a, b) => a + b, 0) / array.length) || 0;
+}
+
 function showMenu() {
   navLinks.style.right = "0";
 }
@@ -78,13 +82,13 @@ class Grid {
   createGrid() {
     let size = 80;
     let padding = 20;
-    let y_height = pixelY(500 - size / 2);
+    let y_height = pixelY(500 - (size));
     for (var x = -1; x < 2; x++) {
       for (var y = -1; y < 2; y++) {
         this.moles.push(
           new Mole(
             this, {
-              x: pixelX(500 - size / 2 + x * (size + padding)),
+              x: pixelX(500 - (size / 2) + x * (size + padding)),
               y: y_height + pixelX(y * (size + padding)),
             }, { x: pixelX(size), y: pixelX(size) }
           )
@@ -98,7 +102,7 @@ class Grid {
     let y_h = pixelY(75);
     for (var i = -1; i < 2; i++) {
       this.strikeMarks.push(
-        new Rectangle({ x: pixelX(500 - size / 2 + i * (size + padding)), y: y_h }, { x: pixelX(size), y: pixelX(size) })
+        new Rectangle({ x: pixelX(500 - (size / 2) + (i * (size + padding))), y: y_h }, { x: pixelX(size), y: pixelX(size) })
       );
     }
   }
@@ -157,8 +161,12 @@ class Grid {
       }
     }
   }
+  drawScoreInfo() {
+    drawText("Your score:", getFont(10, "Poppins"), "black", { x: pixelX(160), y: pixelY(450) })
+    drawText(Math.trunc(this.difficulty * 1000), getFont(50, "Poppins"), "black", { x: pixelX(130), y: pixelY(540) })
+  }
   menuUpdate(click) {
-    drawText(Math.trunc(this.difficulty * 1000), getFont(20, "Poppins"), "black", { x: pixelX(30), y: pixelY(30) })
+    this.drawScoreInfo()
     for (var i = 0; i < 3; i++) {
       if (i < this.strikes) {
         this.strikeMarks[i].draw("red");
@@ -171,8 +179,8 @@ class Grid {
     }
   }
   gameUpdate(click) {
-    drawText(Math.trunc(this.difficulty * 1000), getFont(20, "Poppins"), "black", { x: pixelX(30), y: pixelY(50) })
     this.loop++;
+    this.drawScoreInfo()
     if (this.start_time == 0) {
       this.start_time = Date.now() / 1000;
     }
@@ -184,16 +192,15 @@ class Grid {
         this.next_activation - (this.current - this.lastCall);
     } else if (
       this.next_activation < 0 &&
-      this.activated.length < this.difficulty - 1
+      this.activated.length < this.difficulty / 3
     ) {
       this.next_activation = 1 / (0.5 * this.difficulty);
       this.not_activated[randomInt(0, this.not_activated.length - 1)].activate(
         this.difficulty
       );
-      console.log(this.activated);
     } else if (
       this.next_activation == -1 &&
-      this.activated.length < this.difficulty - 1
+      this.activated.length < this.difficulty / 3
     ) {
       this.next_activation = 1 / (0.5 * this.difficulty);
       this.not_activated[randomInt(0, this.not_activated.length - 1)].activate(
@@ -242,7 +249,6 @@ class Mole {
     this.img_fail = "red";
     this.status = "off";
     this.timeLeft = -1;
-    this.base_time = 3;
     this.clicked_on = false;
     this.cool_down = 0;
     this.lastCall = Date.now() / 1000;
@@ -258,7 +264,7 @@ class Mole {
       );
       this.parent.activated.push(this);
       this.status = "on";
-      this.timeLeft = this.base_time / difficulty;
+      this.timeLeft = difficulty ** -0.4;
     }
   }
   deactive() {
