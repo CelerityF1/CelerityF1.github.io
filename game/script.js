@@ -111,7 +111,7 @@ class Grid {
     this.status = "game";
   }
   endGame() {
-    this.status = "menu";
+    this.status = "gameover";
     for (var i = 0; i < this.moles.length; i++) {
       if (this.moles[i].status != "cooldown-expired") {
         this.moles[i].deactive();
@@ -140,6 +140,9 @@ class Grid {
         break;
       case "game":
         this.gameUpdate(click);
+        break;
+      case "gameover":
+        this.menuUpdate(click);
         break;
     }
   }
@@ -372,15 +375,17 @@ class Button {
       this.textData[2],
       this.textData[3]
     );
-    if (
-      this.position.x < click[1].clientX &&
-      click[1].clientX < this.position.x + this.size.x
-    ) {
+    if (click[0]) {
       if (
-        this.position.y < click[1].clientY &&
-        click[1].clientY < this.position.y + this.size.y
+        this.position.x < click[1].clientX &&
+        click[1].clientX < this.position.x + this.size.x
       ) {
-        this.parent.buttonAction(this.action);
+        if (
+          this.position.y < click[1].clientY &&
+          click[1].clientY < this.position.y + this.size.y
+        ) {
+          this.parent.buttonAction(this.action);
+        }
       }
     }
   }
@@ -395,6 +400,10 @@ class Rectangle {
     c.fillStyle = colour;
     c.fillRect(this.position.x, this.position.y, this.size.x, this.size.y);
   }
+  static drawRect(position, size, colour) {
+    c.fillStyle = colour;
+    c.fillRect(position.x, position.y, size.x, size.y);
+  }
 }
 
 class Game {
@@ -402,25 +411,8 @@ class Game {
     this.grid = new Grid();
     this.back_col = celerityOrange;
     this.status = "";
-
-    this.buttons = [
-      new Button(
-        "Start",
-        getFont(30, "Poppins"),
-        "black",
-        "#cf5204", { x: pixelX(450), y: pixelY(400) }, { x: pixelX(100), y: pixelX(50) }, { x: pixelX(-35), y: pixelX(10) },
-        this,
-        "startGame"
-      ),
-      new Button(
-        "Exit",
-        getFont(30, "Poppins"),
-        "black",
-        "#cf5204", { x: pixelX(450), y: pixelY(530) }, { x: pixelX(100), y: pixelX(50) }, { x: pixelX(-25), y: pixelX(10) },
-        this,
-        "exit"
-      ),
-    ];
+    this.wait = [0, Date.now()]
+    this.buttons = [];
   }
   init() {
     this.grid.reset();
@@ -440,9 +432,30 @@ class Game {
         this.reset();
         this.exit();
         break;
+      case "menu":
+        this.reset();
+        this.setMenu()
     }
   }
   setMenu() {
+    this.buttons = [
+      new Button(
+        "Start",
+        getFont(30, "Poppins"),
+        "black",
+        "#cf5204", { x: pixelX(450), y: pixelY(400) }, { x: pixelX(100), y: pixelX(50) }, { x: pixelX(-35), y: pixelX(10) },
+        this,
+        "startGame"
+      ),
+      new Button(
+        "Exit",
+        getFont(30, "Poppins"),
+        "black",
+        "#cf5204", { x: pixelX(450), y: pixelY(530) }, { x: pixelX(100), y: pixelX(50) }, { x: pixelX(-25), y: pixelX(10) },
+        this,
+        "exit"
+      ),
+    ];
     this.status = "start_menu";
     this.grid.reset();
     this.grid.status = "menu";
@@ -450,6 +463,28 @@ class Game {
   startGame() {
     this.status = "game";
     this.grid.startGame();
+  }
+  endGame() {
+    this.buttons = [
+      new Button(
+        "Retry",
+        getFont(30, "Poppins"),
+        "black",
+        "#cf5204", { x: pixelX(450), y: pixelY(390) }, { x: pixelX(100), y: pixelX(50) }, { x: pixelX(-37), y: pixelX(10) },
+        this,
+        "startGame"
+      ),
+      new Button(
+        "Exit",
+        getFont(30, "Poppins"),
+        "black",
+        "#cf5204", { x: pixelX(450), y: pixelY(520) }, { x: pixelX(100), y: pixelX(50) }, { x: pixelX(-25), y: pixelX(10) },
+        this,
+        "menu"
+      ),
+    ];
+    this.status = "gameover";
+    this.wait = [5, Date.now() / 1000]
   }
   exit() {
     this.status = "off";
@@ -470,6 +505,21 @@ class Game {
       case "game":
         this.background.draw(this.back_col);
         this.grid.update(click);
+        if (this.grid.status == "gameover") {
+          this.endGame()
+        }
+        break;
+      case "gameover":
+        this.background.draw(this.back_col);
+        if (this.wait[0] > 0) {
+          this.wait = [this.wait[0] - (Date.now() / 1000 - this.wait[1]), this.wait[1]]
+          this.grid.update(click)
+        } else {
+          for (var i = 0; i < this.buttons.length; i++) {
+            this.buttons[i].update(click);
+          }
+        }
+        break;
     }
   }
 }
