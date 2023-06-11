@@ -27,14 +27,6 @@ function hideMenu() {
   navLinks.style.right = "-200px";
 }
 
-function pixelAbs(num) {
-  if (canvas.width > canvas.height) {
-    return Math.trunc(num * (canvas.width / 1000) + 0.5);
-  } else {
-    return Math.trunc(num * (canvas.height / 1000) + 0.5);
-  }
-}
-
 function pixelX(num) {
   return Math.trunc(num * (canvas.width / 1000) + 0.5);
 }
@@ -46,10 +38,6 @@ function pixelY(num) {
 function randomInt(min, max) {
   Math.floor(Math.random() * (max - min + 1)) + min;
   return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function chance(percent) {
-  return Math.random() < percent;
 }
 
 function getFont(relativeSize, font) {
