@@ -80,7 +80,7 @@ class Grid {
     this.status = "off";
   }
   createGrid() {
-    let size = 80;
+    let size = 100;
     let padding = 20;
     let y_height = pixelY(500 - (size));
     for (var x = -1; x < 2; x++) {
