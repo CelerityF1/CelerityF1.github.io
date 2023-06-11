@@ -13,7 +13,7 @@ body {
 .header {
     min-height: 100vh;
     width: 100%;
-    background-image: linear-gradient( rgba(238, 112, 16, 1), rgba(238, 112, 16, 1)), url();
+    background-image: linear-gradient( rgba(82, 82, 82, 0.2), rgba(63, 63, 63, 0.2)), url("images/banner.png");
     background-position: center;
     background-size: cover;
     position: relative;
@@ -30,11 +30,8 @@ nav img {
     position: absolute;
     left: 2%;
     top: 1%;
-    height: 11%;
-}
-
-.top {
-    background-image: linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0)), url();
+    width: 8vw;
+    height: auto;
 }
 
 .nav-links {
@@ -50,7 +47,7 @@ nav img {
 }
 
 .nav-links ul li a {
-    color: #fff;
+    color: #000;
     text-decoration: none;
     font-size: 15px;
 }
@@ -71,7 +68,7 @@ nav img {
 
 .text-box {
     width: 90%;
-    color: #fff;
+    color: #211553;
     position: absolute;
     top: 50%;
     left: 50%;

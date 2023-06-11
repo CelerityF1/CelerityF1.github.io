@@ -19,7 +19,6 @@ body {
 .header {
     min-height: 100vh;
     width: 100%;
-    color: #d2d7df;
     background-image: linear-gradient( rgba(238, 112, 16, 1), rgba(238, 112, 16, 1)), url();
     background-position: center;
     background-size: cover;
@@ -28,6 +27,7 @@ body {
 
 .header div.social_media {
     position: absolute;
+    color: #000;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
@@ -40,7 +40,7 @@ body {
     transform: translate(-50%, -50%);
     font-weight: 400;
     font-size: 50px;
-    color: #ffffff;
+    color: #000;
 }
 
 nav {
@@ -55,10 +55,6 @@ nav img {
     left: 2%;
     top: 1%;
     width: 11%;
-}
-
-nav.top {
-    background-image: linear-gradient(rgb(0, 0, 0), rgb(0, 0, 0)), url();
 }
 
 .nav-links {
@@ -80,15 +76,9 @@ nav.top {
 }
 
 .nav-links ul li a {
-    color: #ffffff;
+    color: #000;
     text-decoration: none;
     font-size: 15px;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
 }
 
 .nav-links ul li::after {
@@ -107,7 +97,8 @@ nav.top {
 
 .text-box {
     width: 90%;
-    color: #fff;
+    color: #211553;
+    position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
