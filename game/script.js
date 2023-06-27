@@ -490,19 +490,25 @@ class Game {
     switch (this.status) {
       case "start_menu":
         this.background.draw(this.back_col);
-        for (var i = 0; i < this.buttons.length; i++) {
-          this.buttons[i].update(click);
-        }
-        drawText(
-          "Celerity Reaction Trainer",
-          getFont(50, "Poppins"),
-          "black", { x: pixelX(185), y: pixelY(200) }
-        );
         if (portrait) {
           drawText(
-            "Turn your device landscape and reload for a better experience",
-            getFont(20, "Poppins"),
-            "black", { x: pixelX(200), y: pixelY(700) }
+            "Turn your device landscape",
+            getFont(50, "Poppins"),
+            "black", { x: pixelX(180), y: pixelY(440) }
+          );
+          drawText(
+            "and reload the webpage.",
+            getFont(50, "Poppins"),
+            "black", { x: pixelX(200), y: pixelY(500) }
+          );
+        } else {
+          for (var i = 0; i < this.buttons.length; i++) {
+            this.buttons[i].update(click);
+          }
+          drawText(
+            "Celerity Reaction Trainer",
+            getFont(50, "Poppins"),
+            "black", { x: pixelX(185), y: pixelY(200) }
           );
         }
         break;
