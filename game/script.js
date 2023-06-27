@@ -77,9 +77,9 @@ class Grid {
         this.moles.push(
           new Mole(
             this, {
-              x: pixelX(500 - size / 2 + x * (size + padding)),
-              y: y_height + pixelX(y * (size + padding)),
-            }, { x: pixelX(size), y: pixelX(size) }
+            x: pixelX(500 - size / 2 + x * (size + padding)),
+            y: y_height + pixelX(y * (size + padding)),
+          }, { x: pixelX(size), y: pixelX(size) }
           )
         );
       }
@@ -88,7 +88,7 @@ class Grid {
   createStrikeMarks() {
     let size = 25;
     let padding = 10;
-    let y_h = pixelY(75);
+    let y_h = pixelY(50);
     for (var i = -1; i < 2; i++) {
       this.strikeMarks.push(
         new Rectangle({ x: pixelX(500 - size / 2 + i * (size + padding)), y: y_h }, { x: pixelX(size), y: pixelX(size) })
@@ -155,14 +155,10 @@ class Grid {
     }
   }
   drawScoreInfo() {
-    drawText("Your score:", getFont(10, "Poppins"), "black", {
-      x: pixelX(160),
-      y: pixelY(450),
-    });
     drawText(
       Math.trunc(this.difficulty * 1000),
       getFont(50, "Poppins"),
-      "black", { x: pixelX(130), y: pixelY(540) }
+      "black", { x: pixelX(130), y: pixelY(520) }
     );
   }
   menuUpdate(click) {
@@ -498,9 +494,9 @@ class Game {
           this.buttons[i].update(click);
         }
         drawText(
-          "[Game name]",
+          "Celerity Reaction Trainer",
           getFont(50, "Poppins"),
-          "black", { x: pixelX(320), y: pixelY(200) }
+          "black", { x: pixelX(185), y: pixelY(200) }
         );
         if (portrait) {
           drawText(
