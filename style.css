@@ -50,7 +50,7 @@ body {
 
 .text-box {
   width: 90%;
-  color: #211553;
+  color: #4e2adf;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -80,7 +80,7 @@ body {
 }
 
 .third .text-box {
-  color: #211553;
+  color: #4e29e0;
   width: 100%;
   height: 100%;
   backdrop-filter: blur(8px);
@@ -91,7 +91,7 @@ body {
 }
 
 .third .text-box p {
-  color: #211553;
+  color: #4327b6;
   margin-left: 20%;
   width: 60%;
   font-size: 20px;
