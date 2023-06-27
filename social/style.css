@@ -80,7 +80,7 @@ nav img {
 }
 
 .nav-links ul li a {
-  color: #000;
+  color: black;
   text-decoration: none;
   font-size: 15px;
 }
@@ -89,7 +89,7 @@ nav img {
   content: "";
   width: 0%;
   height: 2px;
-  background: #826aed;
+  background: #1232b3;
   display: block;
   margin: auto;
   transition: 0.5s;
@@ -133,9 +133,12 @@ nav .fa {
   .nav-links ul li {
     display: block;
   }
+  .nav-links ul li a {
+    color: white;
+  }
   .nav-links {
     position: absolute;
-    background: linear-gradient(rgba(238, 112, 16, 1), rgba(238, 112, 16, 1));
+    background: black;
     height: 100vh;
     width: 200px;
     top: 0;
